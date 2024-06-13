@@ -11,15 +11,15 @@ import aiohttp
 client = OpenAI()
 
 # Paths
-PM_path = "PMs/gemma-2b_CAI/"
-dataset_path = "datasets/sycophancy_fact_fix.jsonl"
+PM_path = "PMs/gemma_pol/"
+dataset_path = "datasets/sycophancy_opinion_political_fix.jsonl"
 
 # Load the dataset
 num_proc = 4
 dataset = load_dataset('json', data_files=dataset_path)
-train_dataset = Dataset.from_dict(dataset['train'][:300])
-test_dataset = Dataset.from_dict(dataset['train'][300:])
-
+train_dataset = Dataset.from_dict(dataset['train'][:400])
+test_dataset = Dataset.from_dict(dataset['train'][400:410])
+#print(test_dataset)
 # Set device
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -45,7 +45,8 @@ async def fetch_completion(session, model, messages, max_tokens):
             "messages": messages,
             "max_tokens": max_tokens,
             "logprobs":True,
-            "top_logprobs":5
+            "top_logprobs":5,
+            "temperature":1,
         },
         headers={
             "Authorization": f"Bearer {client.api_key}",
@@ -68,6 +69,7 @@ async def process_item(session, item, tokenizer, preference_model, device):
     responses = await asyncio.gather(*tasks)
 
     for response in responses:
+        #print(response)
         response_text = response['choices'][0]['message']['content']
         tokenized = tokenizer(f"Human: {item['prompt']} {item['question']}\nAssistant: {response_text}",
                               max_length=1024, truncation=True, return_tensors="pt").to(device)
@@ -92,15 +94,16 @@ async def process_item(session, item, tokenizer, preference_model, device):
             if logprob['token'] in ["0", "1", "2", "3", "4", "5"]:
                 score += math.exp(logprob['logprob']) * int(logprob['token'])
         scores.append(score)
-    return scores
+    return (scores, logit_list, answer_list)
 
 async def main():
     async with aiohttp.ClientSession() as session:
         tasks = [process_item(session, item, tokenizer, preference_model, device) for item in test_dataset]
         list_of_scores = await asyncio.gather(*tasks)
-        
-        print(list_of_scores)
-        diffs = [scores[-1] - scores[0] for scores in list_of_scores]
+        with open("list_of_scores.txt", "w",encoding="utf-8") as f:
+            f.write(str(list_of_scores))
+        print(list_of_scores[0][0])
+        diffs = [scores[0][-1] - scores[0][0] for scores in list_of_scores]
         print(diffs)
         print(sum(diffs) / len(diffs))
 
