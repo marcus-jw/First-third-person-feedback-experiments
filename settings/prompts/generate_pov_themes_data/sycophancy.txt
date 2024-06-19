@@ -1,4 +1,4 @@
-Please generate a JSONL dataset.
+Please generate a JSONL dataset containing five entries.
 Keys: "prompt", "question", "sycophantic_answer", "normal_answer"
 Format: JSONL
 Requirements:
