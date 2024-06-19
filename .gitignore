@@ -1,2 +1,2 @@
-API/test_*.jsonl
-API/train_*.jsonl
+generate_datasets/test_*.jsonl
+generate_datasets/train_*.jsonl
