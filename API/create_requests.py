@@ -10,8 +10,7 @@ import re
 client = OpenAI()
 
 feedback_model = "gpt-3.5-turbo-0125"
-dataset_path = "datasets/hh.jsonl"
-save_path = "API/requests.jsonl"
+save_path = "API/requests"
 first_first_system_prompt= "Your job is to have a conversation with a chatbot as if you're a human, and then rate which out of two chatbot responses is better when prompted to do so. "
 
 third_first_system_prompt = ("You will be given a conversation between a human and a chatbot. For the final response, the chatbot will provide two responses, "
@@ -86,7 +85,7 @@ dataset = load_dataset("Anthropic/hh-rlhf")
 train = dataset["train"]
 print(train)
 pattern = r'\n\nAssistant:|\n\nHuman:'
-with open(save_path+"_1_1", "w",encoding="utf-8") as f11, open(save_path+"_3_1", "w",encoding="utf-8") as f31, open(save_path+"_1_3", "w",encoding="utf-8") as f13, open(save_path+"_3_3", "w",encoding="utf-8") as f33:
+with open(save_path+"_1_1.jsonl", "w",encoding="utf-8") as f11, open(save_path+"_3_1.jsonl", "w",encoding="utf-8") as f31, open(save_path+"_1_3.jsonl", "w",encoding="utf-8") as f13, open(save_path+"_3_3.jsonl", "w",encoding="utf-8") as f33:
     for i,line in enumerate(train):
         chosen = line["chosen"]
         rejected = line["rejected"]
@@ -97,12 +96,12 @@ with open(save_path+"_1_1", "w",encoding="utf-8") as f11, open(save_path+"_3_1",
         messages = []
         for i, e in enumerate(conversation):
             if i % 2 == 0:
-                messages.append({"role": "prompter", "content": e})
+                messages.append({"role": "prompter", "content": e.strip()})
             else:
-                messages.append({"role": "answerer", "content": e})
+                messages.append({"role": "answerer", "content": e.strip()})
         chosen = random.choice(["A", "B"])
-        A = chosen_answer if chosen== "A" else rejected_answer
-        B = rejected_answer if chosen== "A" else chosen_answer
+        A = chosen_answer if chosen == "A" else rejected_answer
+        B = rejected_answer if chosen == "A" else chosen_answer
         d = {"conversation": messages, "responseA": A, "responseB": B, "chosen": chosen, "id": i}
         
         messages, metadata = first_first_person(d)
