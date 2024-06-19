@@ -8,7 +8,6 @@ import argparse
 from datasets import load_dataset
 import re
 client = OpenAI()
-P
 feedback_model = "gpt-3.5-turbo-0125"
 train_test = "test"
 
