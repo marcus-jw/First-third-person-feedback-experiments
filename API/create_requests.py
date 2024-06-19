@@ -10,16 +10,17 @@ import re
 client = OpenAI()
 
 feedback_model = "gpt-3.5-turbo-0125"
-save_path = "API/requests"
-first_first_system_prompt= "Your job is to have a conversation with a chatbot as if you're a human, and then rate which out of two chatbot responses is better when prompted to do so. "
 
-third_first_system_prompt = ("You will be given a conversation between a human and a chatbot. For the final response, the chatbot will provide two responses, "
+save_path = "API/requests.jsonl"
+first_firstshoes_system_prompt= "Your job is to have a conversation with a chatbot as if you're a human, and then rate which out of two chatbot responses is better when prompted to do so. "
+
+third_firstshoes_system_prompt = ("You will be given a conversation between a human and a chatbot. For the final response, the chatbot will provide two responses, "
                               "it is your job to rate which out of the two responses the human would prefer. ")
 
-third_third_system_prompt = ("You will be given a conversation between a human and a chatbot. For the final response, the chatbot will provide two responses, "
+third_thirdshoes_system_prompt = ("You will be given a conversation between a human and a chatbot. For the final response, the chatbot will provide two responses, "
                                 "it is your job to rate which out of the two responses is better. ")
 
-first_third_system_prompt = "Your job is to have a conversation with a chatbot as if you're a human, and then rate which out of two chatbot responses a outside observer would prefer."
+first_thirdshoes_system_prompt = "Your job is to have a conversation with a chatbot as if you're a human, and then rate which out of two chatbot responses a outside observer would prefer."
 
 def prepare_request(model,messages,metadata):
     request = {
@@ -32,8 +33,8 @@ def prepare_request(model,messages,metadata):
     }
     return request
     
-def first_first_person(d:dict, CoT = False):
-    messages = [{"role": "system", "content": first_first_system_prompt}]
+def first_firstshoes_person(d:dict, CoT = False):
+    messages = [{"role": "system", "content": first_firstshoes_system_prompt}]
     for i in d["conversation"]:
         if i["role"] == "prompter":
             messages.append({"role": "assistant", "content": i['content']})
@@ -44,8 +45,8 @@ def first_first_person(d:dict, CoT = False):
     messages.append({"role": "user", "content": f"Response A: {d['responseA']}\n\n Response B: {d['responseB']}" })
     metadata = {"id": d["id"], "chosen": d["chosen"]}
     return messages, metadata
-def third_first_person(d:dict, CoT = False):
-    messages = [{"role": "system", "content": third_first_system_prompt}]
+def third_firstshoes_person(d:dict, CoT = False):
+    messages = [{"role": "system", "content": third_firstshoes_system_prompt}]
     conversation = ""
     for i in d["conversation"]:
         if i["role"] == "prompter":
@@ -55,8 +56,8 @@ def third_first_person(d:dict, CoT = False):
     messages.append({"role": "user", "content": f"The conversation between the chatbot and the human is {conversation}\n\nThe two response options are:\n\nResponse A: {d['responseA']}\n\n Response B: {d['responseB']}\n\nPlease chose the option the human would prefer. Answer only with A or B." })
     metadata = {"id": d["id"], "chosen": d["chosen"]}
     return messages, metadata
-def first_third_person(d:dict, CoT = False):
-    messages = [{"role": "system", "content": first_third_system_prompt}]
+def first_thirdshoes_person(d:dict, CoT = False):
+    messages = [{"role": "system", "content": first_thirdshoes_system_prompt}]
     for i in d["conversation"]:
         if i["role"] == "prompter":
             messages.append({"role": "assistant", "content": i['content']})
@@ -67,8 +68,8 @@ def first_third_person(d:dict, CoT = False):
     messages.append({"role": "user", "content": f"Response A: {d['responseA']}\n\n Response B: {d['responseB']}" })
     metadata = {"id": d["id"], "chosen": d["chosen"]}
     return messages, metadata
-def third_third_person(d:dict, CoT = False):
-    messages = [{"role": "system", "content": third_third_system_prompt}]
+def third_thirdshoes_person(d:dict, CoT = False):
+    messages = [{"role": "system", "content": third_thirdshoes_system_prompt}]
     conversation = ""
     for i in d["conversation"]:
         if i["role"] == "prompter":
@@ -104,19 +105,19 @@ with open(save_path+"_1_1.jsonl", "w",encoding="utf-8") as f11, open(save_path+"
         B = rejected_answer if chosen == "A" else chosen_answer
         d = {"conversation": messages, "responseA": A, "responseB": B, "chosen": chosen, "id": i}
         
-        messages, metadata = first_first_person(d)
+        messages, metadata = first_firstshoes_person(d)
         request = prepare_request(feedback_model,messages,metadata)
         f11.write(json.dumps(request))
         f11.write("\n")
-        messages, metadata = third_first_person(d)
+        messages, metadata = third_firstshoes_person(d)
         request = prepare_request(feedback_model,messages,metadata)
         f31.write(json.dumps(request))
         f31.write("\n")
-        messages, metadata = first_third_person(d)
+        messages, metadata = first_thirdshoes_person(d)
         request = prepare_request(feedback_model,messages,metadata)
         f13.write(json.dumps(request))
         f13.write("\n")
-        messages, metadata = third_third_person(d)
+        messages, metadata = third_thirdshoes_person(d)
         request = prepare_request(feedback_model,messages,metadata)
         f33.write(json.dumps(request))
         f33.write("\n")
