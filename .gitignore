@@ -1,2 +1,1 @@
-src/generate_pov_themes_data/test_*.jsonl
-src/generate_pov_themes_data/train_*.jsonl
+data/hh_labels/*.jsonl
