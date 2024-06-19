@@ -11,7 +11,7 @@ client = OpenAI()
 feedback_model = "gpt-3.5-turbo-0125"
 train_test = "test"
 
-save_path = f"generate_dataset/{train_test}_requests"
+save_path = f"generate_datasets/{train_test}_requests"
 first_firstshoes_system_prompt= "Your job is to have a conversation with a chatbot as if you're a human, and then rate which out of two chatbot responses is better when prompted to do so. "
 
 third_firstshoes_system_prompt = ("You will be given a conversation between a human and a chatbot. For the final response, the chatbot will provide two responses, "
