@@ -7,7 +7,7 @@ import time
 client = OpenAI()
 train_test = "test"
 for perspective in ["1_1","3_1","1_3","3_3"]:
-    response_path = f"API/{train_test}_results_{perspective}.jsonl"
+    response_path = f"generate_datasets/{train_test}_results_{perspective}.jsonl"
     save_path = f"datasets/hh_{train_test}_{perspective}.jsonl"
     with open(response_path, 'r', encoding='utf-8') as infile, open(save_path, 'w', encoding='utf-8') as outfile:
 
