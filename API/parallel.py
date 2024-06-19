@@ -319,29 +319,30 @@ def task_id_generator_function():
 
 if __name__ == "__main__":
     # parse command line arguments
-    train_test = "train"
-    requests_filepath = f"API/{train_test}_requests_1_1.jsonl"
-    save_filepath = f"API/{train_test}_results_1_1.jsonl"
-    request_url = "https://api.openai.com/v1/chat/completions"
-    api_key=os.getenv("OPENAI_API_KEY")
-    max_requests_per_minute = 9000
-    max_tokens_per_minute =default=600_000
-    token_encoding_name = "cl100k_base"
-    max_attempts=5
-    logging_level=logging.INFO
+    train_test = "test"
+    for perspective in ["1_1", "3_1", "1_3", "3_3"]:
+        requests_filepath = f"API/{train_test}_requests_{perspective}.jsonl"
+        save_filepath = f"API/{train_test}_results_{perspective}.jsonl"
+        request_url = "https://api.openai.com/v1/chat/completions"
+        api_key=os.getenv("OPENAI_API_KEY")
+        max_requests_per_minute = 9000
+        max_tokens_per_minute =default=600_000
+        token_encoding_name = "cl100k_base"
+        max_attempts=5
+        logging_level=logging.INFO
 
 
-    # run script
-    asyncio.run(
-        process_api_requests_from_file(
-            requests_filepath=requests_filepath,
-            save_filepath=save_filepath,
-            request_url=request_url,
-            api_key=api_key,
-            max_requests_per_minute=float(max_requests_per_minute),
-            max_tokens_per_minute=float(max_tokens_per_minute),
-            token_encoding_name=token_encoding_name,
-            max_attempts=int(max_attempts),
-            logging_level=int(logging_level),
+        # run script
+        asyncio.run(
+            process_api_requests_from_file(
+                requests_filepath=requests_filepath,
+                save_filepath=save_filepath,
+                request_url=request_url,
+                api_key=api_key,
+                max_requests_per_minute=float(max_requests_per_minute),
+                max_tokens_per_minute=float(max_tokens_per_minute),
+                token_encoding_name=token_encoding_name,
+                max_attempts=int(max_attempts),
+                logging_level=int(logging_level),
+            )
         )
-    )
