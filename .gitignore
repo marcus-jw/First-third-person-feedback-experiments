@@ -1,2 +1,2 @@
-generate_datasets/test_*.jsonl
-generate_datasets/train_*.jsonl
+src/generate_pov_themes_data/test_*.jsonl
+src/generate_pov_themes_data/train_*.jsonl
