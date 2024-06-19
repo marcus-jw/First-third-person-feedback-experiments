@@ -1,3 +1,6 @@
+# Marcus used this code to train a LORA on a previous preference model in another repo
+# This is currently not necessary for this work
+
 import torch
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from transformers import Trainer, TrainingArguments
@@ -6,9 +9,9 @@ from peft import LoraConfig, get_peft_model
 from datasets import load_dataset, Dataset
 
 def main():
-    PM_path = "weqweasdas/RM-Gemma-2B"
-    save_path = "PMs/gemma_pol/"
-    dataset_path = "datasets/opinion.jsonl"
+    PM_path = "../../MORLAIF/data/PM_LoRAs/llama-2-7b-hf_CAI/final"
+    save_path = "../PMs/llama-2-7b/"
+    dataset_path = "../datasets/new_dataset.jsonl"
     num_proc = 4
     dataset = load_dataset('json', data_files=dataset_path)
     train_dataset = Dataset.from_dict(dataset['train'][:300])
@@ -17,17 +20,9 @@ def main():
     device = "cuda" if torch.cuda.is_available() else "cpu"
     tokenizer = AutoTokenizer.from_pretrained(PM_path)
     preference_model = AutoModelForSequenceClassification.from_pretrained(PM_path, num_labels=1).half()
-    for param in preference_model.parameters():
-        param.requires_grad = False
-    # Define LoRA configuration
-    lora_config = LoraConfig(
-        r=8,  # rank
-        lora_alpha=32,
-        lora_dropout=0.1,
-        target_modules=["q_proj", "o_proj", "k_proj", "v_proj", "gate_proj", "up_proj", "down_proj"],
-    )
-
-    # Adapt the model to use LoRA
+    
+    # Load and configure LoRA
+    lora_config = LoraConfig.from_pretrained(PM_path)
     preference_model = get_peft_model(preference_model, lora_config)
 
     def preprocess_func(examples):
@@ -73,7 +68,7 @@ def main():
     print("Training PM")
     trainer.train()
     
-    # Save the entire model, including the LoRA adapter
+    # Save the entire model, including the adapter
     trainer.save_model(save_path)
     tokenizer.save_pretrained(save_path)
 
