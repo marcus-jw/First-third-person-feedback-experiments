@@ -20,7 +20,8 @@ third_firstshoes_system_prompt = ("You will be given a conversation between a hu
 third_thirdshoes_system_prompt = ("You will be given a conversation between a human and a chatbot. For the final response, the chatbot will provide two responses, "
                                 "it is your job to rate which out of the two responses is better. ")
 
-first_thirdshoes_system_prompt = "Your job is to have a conversation with a chatbot as if you're a human, and then rate which out of two chatbot responses a outside observer would prefer."
+first_thirdshoes_system_prompt = ("Your job is to have a conversation with a chatbot as if you're a human. For the final response, the chatbot will provide two responses, "
+                              "it is your job to rate which out of the two responses an outside observer would prefer. " )
 
 def prepare_request(model,messages,metadata):
     request = {

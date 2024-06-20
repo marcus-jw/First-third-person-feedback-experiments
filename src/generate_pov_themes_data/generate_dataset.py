@@ -7,7 +7,7 @@ client = OpenAI()
 model = "gpt-4o"
 #task = "sycophancy"
 #task = "impossible_task"
-task = "danger_refusal"
+task = "personalisation"
 save_path = f"data/datasets/{task}.jsonl"
 with open(f"settings/prompts/topics/{task}.txt", 'r') as file:
     topics_line = file.read()
