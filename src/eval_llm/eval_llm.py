@@ -101,48 +101,42 @@ def parallel_process_data(data, system_prompt, answer_style_prompt, model, sep_r
 
 def eval_llm(model = "gpt-4o", task = "sycophancy", SCRATCHPAD=False):
     # Load the JSON file
-
-    fname_in = os.path.dirname(__file__) + f'/../../data/datasets/{task}.jsonl'
+    model_postfix = "" if model=="" else "_"+model
     fname_in = f'data/datasets/{task}.jsonl'
-    fname_out = f'data/datasets/{task}_eval_{model}.json'
+    fname_out = f'data/datasets/{task}{model_postfix}_eval.jsonl'
     answer_style_prompt = scratchpad_prompt if SCRATCHPAD else A_B_prompt
     with open(fname_in, 'r',encoding="utf-8") as f_in, open(fname_out, 'w',encoding="utf-8") as f_out:
         data = []
         for line in f_in:
             data.append(json.loads(line))
-        #data = data[:50]
         first_firstshoes_messages = parallel_process_data(data, first_firstshoes_system_prompt, answer_style_prompt, model, sep_roles=True)
         third_thirdshoes_messages = parallel_process_data(data, third_thirdshoes_system_prompt, answer_style_prompt, model, sep_roles=False)
-        third_firstshoes_messages = parallel_process_data(data, third_firstshoes_system_prompt ,answer_style_prompt, model, sep_roles=False)
+        third_firstshoes_messages = parallel_process_data(data, third_firstshoes_system_prompt, answer_style_prompt, model, sep_roles=False)
         first_thirdshoes_messages = parallel_process_data(data, first_thirdshoes_system_prompt, answer_style_prompt, model, sep_roles=True)
 
-        # then use the info
-        probs_positive_dict = {
-            "first_firstshoes": np.mean(
-            [np.exp(msg["positive_label_logprob"]) for msg in first_firstshoes_messages]),
-            "third_thirdshoes": np.mean(
-            [np.exp(msg["positive_label_logprob"]) for msg in third_thirdshoes_messages]),
-            "third_firstshoes": np.mean(
-            [np.exp(msg["positive_label_logprob"]) for msg in third_firstshoes_messages]),
-            "first_thirdshoes": np.mean(
-            [np.exp(msg["positive_label_logprob"]) for msg in first_thirdshoes_messages])
-        }
+        for i in range(len(data)):
+            data[i]["positive_label_prob"] = {
+                "first_firstshoes": np.exp(first_firstshoes_messages[i]["positive_label_logprob"]),
+                "third_thirdshoes": np.exp(third_thirdshoes_messages[i]["positive_label_logprob"]),
+                "third_firstshoes": np.exp(third_firstshoes_messages[i]["positive_label_logprob"]),
+                "first_thirdshoes": np.exp(first_thirdshoes_messages[i]["positive_label_logprob"]),
+            }
+            data[i]["negative_label_prob"] = {
+                "first_firstshoes": np.exp(first_firstshoes_messages[i]["negative_label_logprob"]),
+                "third_thirdshoes": np.exp(third_thirdshoes_messages[i]["negative_label_logprob"]),
+                "third_firstshoes": np.exp(third_firstshoes_messages[i]["negative_label_logprob"]),
+                "first_thirdshoes": np.exp(first_thirdshoes_messages[i]["negative_label_logprob"]),
+            }
+            data[i].pop('answerA') #delete key
+            data[i].pop('answerB')
 
-        results = {
-            "task": task,
-            "settings": {
-                "scratchpad": SCRATCHPAD,
-                "model": model,
-            },
-            "positive_label": data[0]["positive_label"],
-            "negative_label": data[0]["negative_label"],
-            "probs_positive": probs_positive_dict,
-        }
 
-        json.dump(results, f_out)
-
+            f_out.write(json.dumps(data[i]))
+            f_out.write("\n")
 
 
 if __name__ == "__main__":
+    #for task in ['danger_refusal', 'impossible_task_refusal', 'personalisation', 'sycophancy', 'verbosity']:
+    #for task in ['sycophancy']:
     for task in ['danger_refusal', 'impossible_task_refusal', 'personalisation', 'verbosity']:
         eval_llm(task=task, model="gpt-3.5-turbo")

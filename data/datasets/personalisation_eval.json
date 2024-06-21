@@ -1,1 +1,0 @@
-{"task": "personalisation", "settings": {"scratchpad": false, "model": "gpt-4o"}, "positive_label": "appropriate_answer", "negative_label": "inappropriate_answer", "probs_positive": {"first_firstshoes": 0.4562848420027229, "third_thirdshoes": 0.4661046243797448, "third_firstshoes": 0.7416635787249818, "first_thirdshoes": 0.5925041340824158}}
