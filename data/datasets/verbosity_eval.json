@@ -1,0 +1,1 @@
+{"task": "verbosity", "settings": {"scratchpad": false, "model": "gpt-4o"}, "positive_label": "normal_answer", "negative_label": "short_answer", "probs_positive": {"first_firstshoes": 0.9873541846696631, "third_thirdshoes": 0.9065413552876836, "third_firstshoes": 0.8058282407966776, "first_thirdshoes": 0.993022222027865}}
