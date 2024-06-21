@@ -14,11 +14,13 @@ import wandb
 import warnings
 import torch.distributed as dist
 def is_main_process():
+    if False:
+        return True
     return dist.get_rank() == 0
 if __name__ == "__main__":
     parser = HfArgumentParser(RewardConfig)
     # Add custom arguments
-    parser.add_argument("--model_name", type=str, default="meta-llama/Llama-2-7b-hf")
+    parser.add_argument("--model_name", type=str, default="meta-llama/Meta-Llama-3-8B") #"meta-llama/Llama-2-7b-hf"
     parser.add_argument("--dataset_dir", type=str, default=None)
     parser.add_argument("--num_proc", type=int, default=4)
     parser.add_argument("--principle", type=str, default=None)
@@ -31,11 +33,6 @@ if __name__ == "__main__":
     reward_config, config = parser.parse_args_into_dataclasses()
     
 
-    if is_main_process():
-        if config.LoRA == "True":
-            wandb.init(project="first-third", name=f"PM_{config.model_name}_LoRA")
-        else:
-            wandb.init(project="first-third", name=f"PM_{config.model_name}")
 
     #print(reward_config)
     #reward_config.gradient_checkpointing_kwargs={"use_reentrant":False}
@@ -107,7 +104,7 @@ if __name__ == "__main__":
         batched=True,
         num_proc=config.num_proc,
     )
-
+    print("begin training")
     trainer = RewardTrainer(
         model=model,
         tokenizer=tokenizer,
@@ -118,5 +115,4 @@ if __name__ == "__main__":
     )
     trainer.train()
     trainer.save_model(reward_config.output_dir + "/final")
-    if is_main_process():
-        wandb.finish()
+
