@@ -22,7 +22,7 @@ if __name__ == "__main__":
     # Add custom arguments
     parser.add_argument("--model_name", type=str, default="meta-llama/Meta-Llama-3-8B") #"meta-llama/Llama-2-7b-hf"
     parser.add_argument("--dataset_dir", type=str, default=None)
-    parser.add_argument("--num_proc", type=int, default=4)
+    parser.add_argument("--num_proc", type=int, default=32)
     parser.add_argument("--principle", type=str, default=None)
     parser.add_argument("--LoRA", type=str, default="False")
     parser.add_argument("--LoRA_r", type=int, default=None)
@@ -110,9 +110,9 @@ if __name__ == "__main__":
         tokenizer=tokenizer,
         args=reward_config,
         train_dataset=train_dataset['train'],
-        eval_dataset=test_dataset,
+        eval_dataset=test_dataset['train'],
         peft_config=peft_config,
     )
     trainer.train()
-    trainer.save_model(reward_config.output_dir + "/final")
-
+    trainer.save_model(reward_config.output_dir)
+    tokenizer.save_pretrained(reward_config.output_dir)
