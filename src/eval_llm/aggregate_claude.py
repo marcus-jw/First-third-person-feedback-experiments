@@ -38,7 +38,7 @@ def get_cl_margin_of_error(samples, confidence_level = 0.95):
     #print(f"The 95% confidence interval is {confidence_interval}")
     return margin_of_error
 
-def aggregate_llm(model="gpt-4o", task="sycophancy"):
+def aggregate_llm(model, task="sycophancy"):
     # Load the JSON file
     model_postfix = "" if model == "" else "_" + model
     fname_in = f'data/datasets/{task}{model_postfix}_eval.jsonl'
@@ -59,9 +59,9 @@ def aggregate_llm(model="gpt-4o", task="sycophancy"):
             },
             "positive_label": data[0]["positive_label"],
             "negative_label": data[0]["negative_label"],
-            "positive_label_prob_means": {key: np.mean([row["positive_label_prob"][key] for row in data]) for key in keys},
+            "positive_label_prob_means": {key: np.mean([row["positive_label_prob"][key]/(row["positive_label_prob"][key]+row["negative_label_prob"][key]) for row in data]) for key in keys},
             "positive_label_prob_stds": {key: get_cl_margin_of_error([row["positive_label_prob"][key] for row in data]) for key in keys},
-            "negative_label_prob_means": {key: np.mean([row["negative_label_prob"][key] for row in data]) for key in keys},
+            "negative_label_prob_means": {key: np.mean([row["negative_label_prob"][key]/(row["positive_label_prob"][key]+row["negative_label_prob"][key]) for row in data]) for key in keys},
             "negative_label_prob_stds": {key: get_cl_margin_of_error([row["negative_label_prob"][key] for row in data]) for key in keys},
         }
 
@@ -72,4 +72,4 @@ def aggregate_llm(model="gpt-4o", task="sycophancy"):
 if __name__ == "__main__":
     for task in ['danger_refusal', 'impossible_task_refusal', 'personalisation', 'sycophancy', 'verbosity']:
     #for task in ['sycophancy']:
-        aggregate_llm(task=task, model="gpt-3.5-turbo")
+        aggregate_llm(task=task, model="claude-3-haiku-20240307")

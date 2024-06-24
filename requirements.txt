@@ -9,3 +9,5 @@ accelerate
 peft
 flask
 tiktoken
+seaborn
+wandb
