@@ -250,8 +250,8 @@ if __name__ == "__main__":
             requests_filepath = os.path.dirname(__file__) + f"/../../data/hh_labels/haiku_{split}_{train_test}_requests_{perspective}.jsonl"
             save_filepath = os.path.dirname(__file__) + f"/../../data/hh_labels/haiku_{split}_{train_test}_results_{perspective}.jsonl"
             api_key = os.getenv("ANTHROPIC_API_KEY")
-            max_requests_per_second = int(3500/60)  # Changed from per minute to per second
-            max_tokens_per_second = int(350_000/60)  # Changed from per minute to per second
+            max_requests_per_second = int(7000/60)  # Changed from per minute to per second
+            max_tokens_per_second = int(750_000/60)  # Changed from per minute to per second
             max_attempts = 5
             logging_level = logging.INFO
 

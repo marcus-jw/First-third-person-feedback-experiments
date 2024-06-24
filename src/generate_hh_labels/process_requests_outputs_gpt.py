@@ -6,18 +6,18 @@ from tqdm import tqdm
 import time
 from datasets import load_dataset
 train_test = "train"
-split = "helpful-rejection-sampled"
+split = "harmless-base"
 #"harmless-base", "helpful-base", "helpful-online", "helpful-rejection-sampled"
 dataset = load_dataset("polinaeterna/hh-rlhf", split)     
 if train_test == "train":
     dataset = dataset["train"]
 else:
     dataset = dataset["test"]
-#dataset = dataset.select(range(100)) # For testing purposes
+dataset = dataset.select(range(1000)) # For testing purposes
 
 for perspective in ["1_1","3_1","1_3","3_3"]:
-    response_path = os.path.dirname(__file__) + f"/../../data/hh_labels/{split}_{train_test}_results_{perspective}.jsonl"
-    save_path = os.path.dirname(__file__) + f"/../../data/hh_labels/{split}_{train_test}_{perspective}.jsonl"
+    response_path = f"data/hh_labels/4_{split}_{train_test}_results_{perspective}.jsonl"
+    save_path = f"data/hh_labels/4_{split}_{train_test}_{perspective}.jsonl"
     
     with open(response_path, 'r', encoding='utf-8') as infile, open(save_path, 'w', encoding='utf-8') as outfile:
 

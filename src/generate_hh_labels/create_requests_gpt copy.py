@@ -10,13 +10,12 @@ import re
 feedback_model = "gpt-4o"
 train_test = "train"
 
-split = "harmless-base"
-start_id = 0
+split = "helpful-rejection-sampled"
+start_id = 108380
 #"harmless-base", "helpful-base", "helpful-online", "helpful-rejection-sampled"
-dataset = load_dataset("polinaeterna/hh-rlhf", split) # official repo is messed up
-#dataset = load_dataset("Anthropic/hh-rlhf") 
-
-save_path = f"data/hh_labels/4_{split}_{train_test}_requests"
+dataset = load_dataset("PKU-Alignment/PKU-SafeRLHF")["train"] 
+dataset = dataset.select(range(100))
+save_path = os.path.dirname(__file__) + f"/../../data/hh_labels/{split}_{train_test}_requests"
 first_firstshoes_system_prompt = ("You are a human user testing a new chatbot. Your job is to have a conversation with the chatbot. " 
 "For some responses the chatbot will provide two responses and you should rate which one you, the human user, think is better.")
 
@@ -93,7 +92,7 @@ if train_test == "train":
 else:
     dataset = dataset["test"]
 
-dataset = dataset.select(range(1000)) # For testing purposes
+#dataset = dataset.select(range(100)) # For testing purposes
 
 
 pattern = r'\n\nAssistant:|\n\nHuman:'
