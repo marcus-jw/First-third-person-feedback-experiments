@@ -13,18 +13,18 @@ train_test = "train"
 split = "harmless-base"
 start_id = 0
 #"harmless-base", "helpful-base", "helpful-online", "helpful-rejection-sampled"
-dataset = load_dataset("polinaeterna/hh-rlhf", split) # official repo is messed up
-#dataset = load_dataset("Anthropic/hh-rlhf") 
-
-save_path = f"data/hh_labels/4_{split}_{train_test}_requests"
+#dataset = load_dataset("polinaeterna/hh-rlhf", split) # official repo is messed up
+dataset = load_dataset("Anthropic/hh-rlhf")
+dataset = dataset["test"]
+save_path = f"data/hh_labels/4_{train_test}_requests"
 first_firstshoes_system_prompt = ("You are a human user testing a new chatbot. Your job is to have a conversation with the chatbot. " 
 "For some responses the chatbot will provide two responses and you should rate which one you, the human user, think is better.")
 
 third_firstshoes_system_prompt = ("You will be given a conversation between a human user and a chatbot. For the final response, the chatbot will provide two responses, "
-                              "it is your job to rate which out of the two responses the human user would prefer.")
+                              "it is your job to rate which out of the two responses the human user would prefer. Answer only with A or B.")
 
 third_thirdshoes_system_prompt = ("You will be given a conversation between a human user and a chatbot. For the final response, the chatbot will provide two responses, "
-                                "it is your job to rate which out of the two responses is better.")
+                                "it is your job to rate which out of the two responses an independent third-party observer would prefer. Answer only with A or B.")
 
 first_thirdshoes_system_prompt = ("You are a human user testing a new chatbot. Your job is to have a conversation with the chatbot. " 
 "For some responses the chatbot will provide two responses and you should rate which one an independent third-party observer would think is better.")
@@ -60,7 +60,7 @@ def third_firstshoes_person(d:dict, CoT = False):
             conversation += f"Human: {i['content'].strip()}\n"
         else:
             conversation += f"Chatbot: {i['content'].strip()}\n"
-    messages.append({"role": "user", "content": f"The conversation between the chatbot and the human is {conversation}\n\nThe two response options are:\n\nResponse A: {d['responseA']}\n\n Response B: {d['responseB']}\n\nPlease choose the option the human would prefer. Answer only with A or B." })
+    messages.append({"role": "user", "content": f"The conversation between the chatbot and the human is:\n\n<conversation>\n\n{conversation}\n</conversation>\n\nThe two response options are:\n\nResponse A: {d['responseA']}\n\n Response B: {d['responseB']}\n\nPlease choose the option the human would prefer. Answer only with A or B." })
     metadata = {"id": d["id"], "chosen": d["chosen"]}
     return messages, metadata
 def first_thirdshoes_person(d:dict, CoT = False):
@@ -83,21 +83,22 @@ def third_thirdshoes_person(d:dict, CoT = False):
             conversation += f"Human: {i['content'].strip()}\n"
         else:
             conversation += f"Chatbot: {i['content'].strip()}\n"
-    messages.append({"role": "user", "content": f"The conversation between the chatbot and the human is {conversation}\n\nThe two response options are:\n\nResponse A: {d['responseA']}\n\n Response B: {d['responseB']}\n\nPlease choose the an independent third party observer would prefer. Answer only with A or B." })
+    messages.append({"role": "user", "content": f"The conversation between the chatbot and the human is:\n\n<conversation>\n\n{conversation}\n</conversation>\n\nThe two response options are:\n\nResponse A: {d['responseA']}\n\n Response B: {d['responseB']}\n\nPlease choose the an independent third party observer would prefer. Answer only with A or B." })
     metadata = {"id": d["id"], "chosen": d["chosen"]}
     return messages, metadata
 
 
-if train_test == "train":
-    dataset = dataset["train"]
-else:
-    dataset = dataset["test"]
+# if train_test == "train":
+#     dataset = dataset["train"]
+# else:
+#     dataset = dataset["test"]
 
-dataset = dataset.select(range(1000)) # For testing purposes
+#dataset = dataset.select(range(1000)) # For testing purposes
 
 
 pattern = r'\n\nAssistant:|\n\nHuman:'
-with open(save_path+"_1_1.jsonl", "w",encoding="utf-8") as f11, open(save_path+"_3_1.jsonl", "w",encoding="utf-8") as f31, open(save_path+"_1_3.jsonl", "w",encoding="utf-8") as f13, open(save_path+"_3_3.jsonl", "w",encoding="utf-8") as f33:
+#with open(save_path+"_1_1.jsonl", "w",encoding="utf-8") as f11, open(save_path+"_3_1.jsonl", "w",encoding="utf-8") as f31, open(save_path+"_1_3.jsonl", "w",encoding="utf-8") as f13, open(save_path+"_3_3.jsonl", "w",encoding="utf-8") as f33:
+with open(save_path+"_3_1.jsonl", "w",encoding="utf-8") as f31, open(save_path+"_3_3.jsonl", "w",encoding="utf-8") as f33:
     for i,line in enumerate(dataset):
         chosen = line["chosen"]
         rejected = line["rejected"]
@@ -116,18 +117,18 @@ with open(save_path+"_1_1.jsonl", "w",encoding="utf-8") as f11, open(save_path+"
         B = rejected_answer if chosen == "A" else chosen_answer
         d = {"conversation": messages, "responseA": A, "responseB": B, "chosen": chosen, "id": i+start_id}
         
-        messages, metadata = first_firstshoes_person(d)
-        request = prepare_request(feedback_model,messages,metadata)
-        f11.write(json.dumps(request))
-        f11.write("\n")
+        # messages, metadata = first_firstshoes_person(d)
+        # request = prepare_request(feedback_model,messages,metadata)
+        # f11.write(json.dumps(request))
+        # f11.write("\n")
         messages, metadata = third_firstshoes_person(d)
         request = prepare_request(feedback_model,messages,metadata)
         f31.write(json.dumps(request))
         f31.write("\n")
-        messages, metadata = first_thirdshoes_person(d)
-        request = prepare_request(feedback_model,messages,metadata)
-        f13.write(json.dumps(request))
-        f13.write("\n")
+        # messages, metadata = first_thirdshoes_person(d)
+        # request = prepare_request(feedback_model,messages,metadata)
+        # f13.write(json.dumps(request))
+        # f13.write("\n")
         messages, metadata = third_thirdshoes_person(d)
         request = prepare_request(feedback_model,messages,metadata)
         f33.write(json.dumps(request))

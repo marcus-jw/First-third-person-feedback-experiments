@@ -98,8 +98,8 @@ else:
 pattern = r'\n\nAssistant:|\n\nHuman:'
 with open(save_path+"_1_1.jsonl", "w",encoding="utf-8") as f11, open(save_path+"_3_1.jsonl", "w",encoding="utf-8") as f31, open(save_path+"_1_3.jsonl", "w",encoding="utf-8") as f13, open(save_path+"_3_3.jsonl", "w",encoding="utf-8") as f33:
     for i,line in enumerate(dataset):
-        chosen = line["chosen"]
-        rejected = line["rejected"]
+        chosen = line["response_0"] if line["better_response_id"] == 0 else line["response_1"] 
+        rejected = line["response_1"] if line["better_response_id"] == 0 else line["response_0"]
         conversation = re.split(pattern, line["chosen"])[1:]
         chosen_answer = conversation[-1]
         conversation = conversation[:-1]
