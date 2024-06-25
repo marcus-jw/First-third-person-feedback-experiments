@@ -1,4 +1,5 @@
 data/hh_labels/*.jsonl
+models/*
 *.DS_Store
 
  Byte-compiled / optimized / DLL files
