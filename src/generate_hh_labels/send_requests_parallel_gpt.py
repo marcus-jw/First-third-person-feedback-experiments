@@ -319,14 +319,17 @@ def task_id_generator_function():
 
 if __name__ == "__main__":
     # parse command line arguments
-    train_test = "test"
+    train_test = "train"
+    split = "harmless-base"
+#"harmless-base", "helpful-base", "helpful-online", "helpful-rejection-sampled"
+
     for perspective in ["1_1", "3_1", "1_3", "3_3"]:
-        requests_filepath = os.path.dirname(__file__) + f"/../../data/hh_labels/{train_test}_requests_{perspective}.jsonl"
-        save_filepath = os.path.dirname(__file__) + f"/../../data/hh_labels/{train_test}_results_{perspective}.jsonl"
+        requests_filepath = f"data/hh_labels/4_{split}_{train_test}_requests_{perspective}.jsonl"
+        save_filepath = f"data/hh_labels/4_{split}_{train_test}_results_{perspective}.jsonl"
         request_url = "https://api.openai.com/v1/chat/completions"
         api_key=os.getenv("OPENAI_API_KEY")
         max_requests_per_minute = 9000
-        max_tokens_per_minute =default=600_000
+        max_tokens_per_minute =default=500_000
         token_encoding_name = "cl100k_base"
         max_attempts=5
         logging_level=logging.INFO
