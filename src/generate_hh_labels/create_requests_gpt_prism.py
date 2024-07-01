@@ -147,7 +147,7 @@ if __name__=="__main__":
     dataset = load_dataset("HannahRoseKirk/prism-alignment", "conversations")
     dataset = dataset["train"]
     df = pd.DataFrame(data=dataset)
-    df = df[:2]
+    #df = df[:2]
 
     with open(save_path+"_3_1.jsonl", "w",encoding="utf-8") as f31, open(save_path+"_3_3.jsonl", "w",encoding="utf-8") as f33, open(save_path+"_all.jsonl", "w",encoding="utf-8") as fall:
         comparisons_all = []
