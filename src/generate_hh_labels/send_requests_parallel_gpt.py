@@ -324,8 +324,8 @@ if __name__ == "__main__":
 #"harmless-base", "helpful-base", "helpful-online", "helpful-rejection-sampled"
 
     for perspective in [ "3_1", "3_3"]:
-        requests_filepath = f"data/hh_labels/4_{train_test}_requests_{perspective}.jsonl"
-        save_filepath = f"data/hh_labels/4_{train_test}_results_{perspective}.jsonl"
+        requests_filepath = f"data/hh_labels/prism_35_{train_test}_requests_{perspective}.jsonl"
+        save_filepath = f"data/hh_labels/prism_35_{train_test}_results_{perspective}.jsonl"
         request_url = "https://api.openai.com/v1/chat/completions"
         api_key=os.getenv("OPENAI_API_KEY")
         max_requests_per_minute = 9000

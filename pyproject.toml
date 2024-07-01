@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=63"]
+build-backend = "setuptools.build_meta"
+
+[tool.docformatter]
+recursive = true
+wrap-summaries = 70
+wrap-descriptions = 70
+
+[tool.black]
+line-length = 120
+include = '\.pyi?$'
+exclude = ''
+
+[isort]
+profile = "black"
+line-length = 120
+known_third_party = ["wandb"]
