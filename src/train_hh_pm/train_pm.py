@@ -1,21 +1,12 @@
-import json
 import os
 import re
-import warnings
-from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Union
 
-import torch
 import torch.distributed as dist
-import wandb
-from accelerate import Accelerator, init_empty_weights
+from accelerate import Accelerator
 from datasets import load_dataset
-from huggingface_hub import login
 from peft import LoraConfig, PeftModel, TaskType, get_peft_model
 from torch.distributed.fsdp import FullyShardedDataParallel as FSDP
-from torch.distributed.fsdp.api import FullStateDictConfig, StateDictType
-from tqdm import tqdm
-from transformers import AutoModelForSequenceClassification, AutoTokenizer, HfArgumentParser, TrainingArguments
+from transformers import AutoModelForSequenceClassification, AutoTokenizer, HfArgumentParser
 from trl import RewardConfig, RewardTrainer
 
 accelerator = Accelerator()
@@ -37,15 +28,18 @@ if __name__ == "__main__":
     parser.add_argument("--LoRA_alpha", type=int, default=None)
     parser.add_argument("--LoRA_dropout", type=float, default=None)
     parser.add_argument("--margin", type=str, default="True")
+    parser.add_argument("--tokenizer_name", type=str, default=None)
+    parser.add_argument("--perspective", type=str, default="3_1")
     # parser.add_argument("--bf16", type=bool, default=True)
     # Parse the dictionary into RewardConfig
     reward_config, config = parser.parse_args_into_dataclasses()
 
     # print(reward_config)f
     # reward_config.gradient_checkpointing_kwargs={"use_reentrant":False}
-    perspective = "3_3"
-    train_dataset = load_dataset("json", data_files=f"data/hh_labels/hh_train_{perspective}.jsonl")["train"]
-    test_dataset = load_dataset("json", data_files=f"data/hh_labels/hh_test_{perspective}.jsonl")["train"]
+    train_dataset = load_dataset("json", data_files=f"data/hh_labels/hh_train_{config.perspective}.jsonl")["train"]
+    test_dataset = load_dataset("json", data_files=f"data/hh_labels/hh_test_{config.perspective}.jsonl")["train"]
+    # train_dataset = load_dataset("json", data_files=f"data/hh_labels/anthropic_train.jsonl")["train"]
+    # test_dataset = load_dataset("json", data_files=f"data/hh_labels/anthropic_test.jsonl")["train"]
 
     # train_dataset = train_dataset.select(range(5))
     test_dataset = test_dataset.select(range(1024))
@@ -60,7 +54,7 @@ if __name__ == "__main__":
     )
 
     tokenizer = AutoTokenizer.from_pretrained(
-        config.model_name, use_fast=True, padding="max_length", max_length=reward_config.max_length, truncation=True
+        config.tokenizer_name, use_fast=True, padding="max_length", max_length=reward_config.max_length, truncation=True
     )
 
     model = AutoModelForSequenceClassification.from_pretrained(config.model_name, num_labels=1)
@@ -90,10 +84,10 @@ if __name__ == "__main__":
         attention_masks_chosen, attention_masks_rejected = [], []
         margins = []
         for i in range(len(examples["chosen"])):
-            # chosen_prompt = format_prompt(examples['chosen'][i])
-            # rejected_prompt = format_prompt(examples['rejected'][i])
-            chosen_prompt = examples["chosen"][i]
-            rejected_prompt = examples["rejected"][i]
+            chosen_prompt = format_prompt(examples["chosen"][i])
+            rejected_prompt = format_prompt(examples["rejected"][i])
+            # chosen_prompt = examples["chosen"][i]
+            # rejected_prompt = examples["rejected"][i]
             logits_chosen = float(examples["logits_chosen"][i])
             logits_rejected = float(examples["logits_rejected"][i])
 
@@ -103,12 +97,27 @@ if __name__ == "__main__":
             tokenized_rejected = tokenizer(
                 rejected_prompt, truncation="longest_first", padding="longest", max_length=reward_config.max_length
             )
-
+            if logits_chosen > logits_rejected:
+                tokenized_chosen = tokenizer(
+                    chosen_prompt, truncation="longest_first", padding="longest", max_length=reward_config.max_length
+                )
+                tokenized_rejected = tokenizer(
+                    rejected_prompt, truncation="longest_first", padding="longest", max_length=reward_config.max_length
+                )
+                margin = logits_chosen - logits_rejected
+            else:
+                tokenized_chosen = tokenizer(
+                    rejected_prompt, truncation="longest_first", padding="longest", max_length=reward_config.max_length
+                )
+                tokenized_rejected = tokenizer(
+                    chosen_prompt, truncation="longest_first", padding="longest", max_length=reward_config.max_length
+                )
+                margin = logits_rejected - logits_chosen
             inputs_chosen.append(tokenized_chosen["input_ids"])
             attention_masks_chosen.append(tokenized_chosen["attention_mask"])
             inputs_rejected.append(tokenized_rejected["input_ids"])
             attention_masks_rejected.append(tokenized_rejected["attention_mask"])
-            margins.append(logits_chosen - logits_rejected)
+            margins.append(margin)
 
         d = {
             "input_ids_chosen": inputs_chosen,
@@ -144,8 +153,6 @@ if __name__ == "__main__":
         peft_config=peft_config,
     )
     trainer.train()
-    if dist.is_initialized():
-        dist.barrier()
-
+    trainer.save_model()
     model = accelerator.unwrap_model(model)
-    model.save_pretrained(f"models/llama3_{perspective}")
+    model.save_pretrained(reward_config.output_dir + "/unwrap")
