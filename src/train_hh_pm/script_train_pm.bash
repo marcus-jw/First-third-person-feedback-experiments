@@ -1,6 +1,6 @@
 export HF_HOME=/nas/ucb/marcuswilliams/cache/
 accelerate launch --config_file accelerate_config.yaml src/train_hh_pm/train_pm.py  \
-    --output_dir=models/fair_3_3 \
+    --output_dir=models/fair_c_3_3 \
     --model_name=meta-llama/Meta-Llama-3-8B \
     --per_device_train_batch_size=32 \
     --per_device_eval_batch_size=32 \
