@@ -11,11 +11,12 @@ from transformers import AutoModelForSequenceClassification, AutoTokenizer
 os.environ["HF_HOME"] = "/nas/ucb/marcuswilliams/cache/"
 
 # Paths
-perspective = "3_3"
+perspective = "3_1"
 # PM_path = f"models/fair_{perspective}"
 # model_name = "sfairXC/FsfairX-LLaMA3-RM-v0.1"
 model_name = "meta-llama/Meta-Llama-3-8B"
-PM_path = f"models/llama3_{perspective}"
+tokenizer_name = "sfairXC/FsfairX-LLaMA3-RM-v0.1"
+PM_path = f"models/llama_g3_{perspective}/checkpoint-500"
 
 
 # Load the dataset
@@ -23,10 +24,10 @@ num_proc = 4
 
 
 # Set device
-device = "cuda:2"
+device = "cuda:5"
 
 # Load the tokenizer and model
-tokenizer = AutoTokenizer.from_pretrained(model_name)
+tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
 # preference_model = AutoModelForSequenceClassification.from_pretrained(PM_path, num_labels=1)
 preference_model = AutoModelForSequenceClassification.from_pretrained(model_name, num_labels=1)
 # Load the LoRA configuration and initialize the PEFT model
