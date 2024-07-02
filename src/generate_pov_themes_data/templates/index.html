@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>JSONL Viewer</title>
+</head>
+
+<body>
+    <div>
+        <h1>Entry {{ entry_id + 1 }} of {{ total_entries }}</h1>
+        <p><strong>Question:</strong> {{ entry.question }}</p>
+        <p>
+            <strong>Answer A:</strong> {{ entry.answerA }}
+        </p>
+        <p><strong>Answer B:</strong> {{ entry.answerB }}</p>
+        <p><strong>Prism chose:</strong> {{ entry.prism_chose }}</p>
+        <p><strong>First perspective chose:</strong> {{ entry.first_chose }}</p>
+        <p><strong>Third perspective chose:</strong> {{ entry.third_chose }}</p>
+        <p><strong>Whole conversation:</strong> {{ entry.conversation }}</p>
+    </div>
+    <form actiona="{{ url_for('delete_entry', entry_id=entry_id) }}" method="post">
+        <button type="submit">Delete Entry</button>
+    </form>
+    <br>
+    <form action="{{ url_for('next_entry', entry_id=entry_id) }}">
+        <button type="submit">Next Entry</button>
+    </form>
+</body>
+
+</html>
