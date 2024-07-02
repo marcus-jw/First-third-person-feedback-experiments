@@ -1,25 +1,16 @@
-import json
 import os
 import re
-import warnings
-from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Union
 
-import torch
 import torch.distributed as dist
-import wandb
-from accelerate import Accelerator, init_empty_weights
+from accelerate import Accelerator
 from datasets import load_dataset
-from huggingface_hub import login
 from peft import LoraConfig, PeftModel, TaskType, get_peft_model
 from torch.distributed.fsdp import FullyShardedDataParallel as FSDP
-from torch.distributed.fsdp.api import FullStateDictConfig, StateDictType
-from tqdm import tqdm
-from transformers import AutoModelForSequenceClassification, AutoTokenizer, HfArgumentParser, TrainingArguments
+from transformers import AutoModelForSequenceClassification, AutoTokenizer, HfArgumentParser
 from trl import RewardConfig, RewardTrainer
 
 accelerator = Accelerator()
-os.environ["HF_HOME"] = "/nas/ucb/marcuswilliams/cache/"
+os.environ["HF_HOME"] = "/nas/ucb/constantinweisser/cache/"
 
 
 def is_main_process():
@@ -39,6 +30,7 @@ if __name__ == "__main__":
     parser.add_argument("--margin", type=str, default="True")
     parser.add_argument("--tokenizer_name", type=str, default=None)
     parser.add_argument("--perspective", type=str, default="3_1")
+    # parser.add_argument("--eval_strategy", type=str, default="")
     # parser.add_argument("--bf16", type=bool, default=True)
     # Parse the dictionary into RewardConfig
     reward_config, config = parser.parse_args_into_dataclasses()
@@ -48,11 +40,13 @@ if __name__ == "__main__":
     train_dataset = load_dataset("json", data_files=f"data/hh_labels/prism_35_train_{config.perspective}.jsonl")[
         "train"
     ]
-    # test_dataset = load_dataset("json", data_files=f"data/hh_labels/prism_hh_test_{perspective}.jsonl")["train"]
+    # test_dataset = load_dataset("json", data_files=f"data/hh_labels/hh_test_{config.perspective}.jsonl")["train"]
     test_dataset = train_dataset.select(range(5))
+    # train_dataset = load_dataset("json", data_files=f"data/hh_labels/anthropic_train.jsonl")["train"]
+    # test_dataset = load_dataset("json", data_files=f"data/hh_labels/anthropic_test.jsonl")["train"]
 
     # train_dataset = train_dataset.select(range(5))
-    # test_dataset = test_dataset.select(range(128))
+    # test_dataset = test_dataset.select(range(1024))
 
     peft_config = LoraConfig(
         task_type=TaskType.SEQ_CLS,
@@ -98,6 +92,8 @@ if __name__ == "__main__":
         for i in range(len(examples["answer_chosen"])):
             chosen_prompt = format_prompt(examples["conversation"][i], examples["answer_chosen"][i])
             rejected_prompt = format_prompt(examples["conversation"][i], examples["answer_rejected"][i])
+            # chosen_prompt = examples["chosen"][i]
+            # rejected_prompt = examples["rejected"][i]
             logits_chosen = float(examples["logits_chosen"][i])
             logits_rejected = float(examples["logits_rejected"][i])
 
@@ -107,12 +103,27 @@ if __name__ == "__main__":
             tokenized_rejected = tokenizer(
                 rejected_prompt, truncation="longest_first", padding="longest", max_length=reward_config.max_length
             )
-
+            if logits_chosen > logits_rejected:
+                tokenized_chosen = tokenizer(
+                    chosen_prompt, truncation="longest_first", padding="longest", max_length=reward_config.max_length
+                )
+                tokenized_rejected = tokenizer(
+                    rejected_prompt, truncation="longest_first", padding="longest", max_length=reward_config.max_length
+                )
+                margin = logits_chosen - logits_rejected
+            else:
+                tokenized_chosen = tokenizer(
+                    rejected_prompt, truncation="longest_first", padding="longest", max_length=reward_config.max_length
+                )
+                tokenized_rejected = tokenizer(
+                    chosen_prompt, truncation="longest_first", padding="longest", max_length=reward_config.max_length
+                )
+                margin = logits_rejected - logits_chosen
             inputs_chosen.append(tokenized_chosen["input_ids"])
             attention_masks_chosen.append(tokenized_chosen["attention_mask"])
             inputs_rejected.append(tokenized_rejected["input_ids"])
             attention_masks_rejected.append(tokenized_rejected["attention_mask"])
-            margins.append(logits_chosen - logits_rejected)
+            margins.append(margin)
 
         d = {
             "input_ids_chosen": inputs_chosen,
@@ -147,12 +158,11 @@ if __name__ == "__main__":
         eval_dataset=test_dataset,
         peft_config=peft_config,
     )
+    print("trainer train")
     trainer.train()
-    if dist.is_initialized():
-        dist.barrier()
-    # if accelerator.is_main_process:
-    #   print("Saving model")
-    # model.save_pretrained("models/fair_3_3")
-
+    print("saving model")
+    trainer.save_model()
+    print("unwrapping model")
     model = accelerator.unwrap_model(model)
-    model.save_pretrained(reward_config.output_dir + "/final")
+    print("saving unwrapped model")
+    model.save_pretrained(reward_config.output_dir + "/unwrap")
