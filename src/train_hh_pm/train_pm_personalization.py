@@ -37,13 +37,16 @@ if __name__ == "__main__":
 
     # print(reward_config)f
     # reward_config.gradient_checkpointing_kwargs={"use_reentrant":False}
-    train_dataset = load_dataset("json", data_files=f"data/hh_labels/hh_train_{config.perspective}.jsonl")["train"]
-    test_dataset = train_dataset.select(range(4))
+    train_dataset = load_dataset(
+        "json", data_files=f"data/datasets/all_personalization_{config.perspective}_gpt-3.5-turbo_fortraining.jsonl"
+    )["train"]
+    # train_dataset = load_dataset("json", data_files=f"data/hh_labels/hh_train_{config.perspective}.jsonl")["train"]
+    test_dataset = train_dataset.select(range(5))
     # test_dataset = load_dataset("json", data_files=f"data/hh_labels/hh_test_{config.perspective}.jsonl")["train"]
     # train_dataset = load_dataset("json", data_files=f"data/hh_labels/anthropic_train.jsonl")["train"]
     # test_dataset = load_dataset("json", data_files=f"data/hh_labels/anthropic_test.jsonl")["train"]
 
-    train_dataset = train_dataset.select(range(5))
+    # train_dataset = train_dataset.select(range(5))
     # test_dataset = test_dataset.select(range(1024))
 
     peft_config = LoraConfig(
@@ -87,7 +90,7 @@ if __name__ == "__main__":
         inputs_chosen, inputs_rejected = [], []
         attention_masks_chosen, attention_masks_rejected = [], []
         margins = []
-        for i in range(len(examples["chosen"])):
+        for i in range(len(examples["answer_chosen"])):
             # chosen_prompt = format_prompt(examples["chosen"][i])
             # rejected_prompt = format_prompt(examples["rejected"][i])
             pos_messages = [

@@ -38,7 +38,7 @@ for perspective in ["3_1", "3_3"]:
                 data = data[: len(data) // 2]
             data_all.extend(data)
 
-with open(f"data/datasets/all_personalization{model_postfix}_fortraining.jsonl", "w") as outfile:
-    for entry in data_all:
-        json.dump(entry, outfile)
-        outfile.write("\n")
+    with open(f"data/datasets/all_personalization_{perspective}{model_postfix}_fortraining.jsonl", "w") as outfile:
+        for entry in data_all:
+            json.dump(entry, outfile)
+            outfile.write("\n")
