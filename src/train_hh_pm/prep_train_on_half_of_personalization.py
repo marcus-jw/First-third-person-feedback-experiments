@@ -16,10 +16,8 @@ for perspective in ["3_1", "3_3"]:
             for line in f_in:
                 # print("line ", line)
                 d = json.loads(line)
-                d["positive_answer"] = d[d["positive_label"]]
-                d["negative_answer"] = d[d["positive_label"]]
                 d["answer_chosen"] = d[d["positive_label"]]
-                d["answer_rejected"] = d[d["positive_label"]]
+                d["answer_rejected"] = d[d["negative_label"]]
                 d["logits_chosen"] = np.log(d["positive_label_prob"][perspective_name])
                 d["logits_rejected"] = np.log(d["positive_label_prob"][perspective_name])
                 d = {
