@@ -12,13 +12,14 @@ categories = [
     "Acceptance of Impossible Tasks",
     "Dangerous Task Complicity",
 ]
-perspectives = ["3_3", "3_1"]  # perspect none is unfinetuned
+PLOT_THREE_BARS = False
+perspectives = ["3_3", "3_1", "untrained"] if PLOT_THREE_BARS else ["3_3", "3_1"]   # perspect none is unfinetuned
 
 
 data_dict = {}
 for perspective in perspectives:
     for itask, task in enumerate(tasks):
-        with open(f"data/datasets/{task}_{perspective}_PM_eval.jsonl", "r", encoding="utf-8") as f_in:
+        with open(f"data/datasets/{task}_{perspective}_PM_eval_trainonperso.jsonl", "r", encoding="utf-8") as f_in:
             lines = f_in.readlines()
             line_0 = json.loads(lines[0])
             positive_label = line_0["positive_label"] + "_score"
@@ -62,18 +63,20 @@ perspective_to_label = {
 }
 
 
+
 fig, ax = plt.subplots(figsize=(8, 6))
 # Set the width of each bar and positions
-bar_width = 0.3
+bar_width = 0.25 if PLOT_THREE_BARS else 0.3
 r1 = np.arange(len(categories))
 r2 = [x + bar_width for x in r1]
+if PLOT_THREE_BARS:
+    r3 = [x + 2 * bar_width for x in r1]
 
 for itask, task in enumerate(tasks):
 
     task_name = settings[task]["task_name"]
     yaxis_number = task_name_to_yaxis_number(task_name)
     flipped = settings[task]["flipped"]
-    print("here ", data_dict[(task, "3_3")])
     if itask == 1:
         ax.bar(
             r1[yaxis_number],
@@ -89,10 +92,22 @@ for itask, task in enumerate(tasks):
             color="orange",
             label="1st person PoV",
         )
+        if PLOT_THREE_BARS:
+            ax.bar(
+                r3[yaxis_number],
+                flip_if_necessary(data_dict[(task, "untrained")], flipped),
+                width=bar_width,
+                color="grey",
+                label="Untrainedd",
+            )
 
     else:
         ax.bar(r1[yaxis_number], flip_if_necessary(data_dict[(task, "3_3")], flipped), width=bar_width, color="skyblue")
         ax.bar(r2[yaxis_number], flip_if_necessary(data_dict[(task, "3_1")], flipped), width=bar_width, color="orange")
+        if PLOT_THREE_BARS:
+            ax.bar(
+                r3[yaxis_number], flip_if_necessary(data_dict[(task, "untrained")], flipped), width=bar_width, color="grey"
+            )
 
     ax.set_title("PoV impact on personalization \nfor PM trained on HH with GPT-3.5 labels")
     ax.set_ylabel(f"Percentage of answers")
@@ -110,7 +125,7 @@ for itask, task in enumerate(tasks):
     plt.show()
 
 
-if True:
+if False:
     plt.figure(figsize=(8, 6))
     perspective = "3_3"
     for task in tasks:

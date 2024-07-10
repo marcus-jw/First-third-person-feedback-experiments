@@ -4,7 +4,7 @@ import numpy as np
 
 TRAIN_ON_HALF = True
 tasks = ["personalisation", "verbosity", "sycophancy", "danger_refusal", "impossible_task_refusal"]
-model_postfix = "_gpt-3.5-turbo"
+model_postfix = "_gpt-4o" #"_gpt-3.5-turbo"
 
 for perspective in ["3_1", "3_3"]:
     perspective_name = "third_firstshoes" if perspective == "3_1" else "third_thirdshoes"
@@ -19,7 +19,7 @@ for perspective in ["3_1", "3_3"]:
                 d["answer_chosen"] = d[d["positive_label"]]
                 d["answer_rejected"] = d[d["negative_label"]]
                 d["logits_chosen"] = np.log(d["positive_label_prob"][perspective_name])
-                d["logits_rejected"] = np.log(d["positive_label_prob"][perspective_name])
+                d["logits_rejected"] = np.log(d["negative_label_prob"][perspective_name])
                 d = {
                     key: d[key]
                     for key in [

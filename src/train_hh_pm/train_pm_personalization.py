@@ -12,6 +12,7 @@ from trl import RewardConfig, RewardTrainer
 
 accelerator = Accelerator()
 os.environ["HF_HOME"] = "/nas/ucb/constantinweisser/cache/"
+model_postfix = "_gpt-4o" #"_gpt-3.5-turbo"
 
 
 def is_main_process():
@@ -38,8 +39,9 @@ if __name__ == "__main__":
     # print(reward_config)f
     # reward_config.gradient_checkpointing_kwargs={"use_reentrant":False}
     train_dataset = load_dataset(
-        "json", data_files=f"data/datasets/all_personalization_{config.perspective}_gpt-3.5-turbo_fortraining.jsonl"
-    )["train"]
+        "json", data_files=f"data/datasets/all_personalization_{config.perspective}{model_postfix}_fortraining.jsonl"
+    )
+    train_dataset= train_dataset.shuffle()["train"]
     # train_dataset = load_dataset("json", data_files=f"data/hh_labels/hh_train_{config.perspective}.jsonl")["train"]
     test_dataset = train_dataset.select(range(5))
     # test_dataset = load_dataset("json", data_files=f"data/hh_labels/hh_test_{config.perspective}.jsonl")["train"]
@@ -111,7 +113,7 @@ if __name__ == "__main__":
             # chosen_prompt = examples["chosen"][i]
             # rejected_prompt = examples["rejected"][i]
             logits_chosen = float(examples["logits_chosen"][i])
-            logits_rejected = float(examples["logits_chosen"][i])
+            logits_rejected = float(examples["logits_rejected"][i])
 
             if logits_chosen > logits_rejected:
                 tokenized_chosen = tokenizer(
