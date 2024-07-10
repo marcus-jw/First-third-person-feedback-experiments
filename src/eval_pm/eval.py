@@ -12,11 +12,13 @@ os.environ["HF_HOME"] = "/nas/ucb/marcuswilliams/cache/"
 
 # Paths
 perspective = "3_1"
+# perspective = "untrained"
 # PM_path = f"models/fair_{perspective}"
 # model_name = "sfairXC/FsfairX-LLaMA3-RM-v0.1"
 model_name = "meta-llama/Meta-Llama-3-8B"
 tokenizer_name = "sfairXC/FsfairX-LLaMA3-RM-v0.1"
-PM_path = f"models/llama_g3_{perspective}/checkpoint-500"
+#PM_path = f"models/llama_g3_{perspective}/checkpoint-500"
+PM_path = f"models/llama_{perspective}_trainonperso"
 
 
 # Load the dataset
@@ -24,7 +26,7 @@ num_proc = 4
 
 
 # Set device
-device = "cuda:5"
+device = "cuda:0"
 
 # Load the tokenizer and model
 tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
@@ -32,11 +34,13 @@ tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
 preference_model = AutoModelForSequenceClassification.from_pretrained(model_name, num_labels=1)
 # Load the LoRA configuration and initialize the PEFT model
 # lora_config = LoraConfig.from_pretrained(PM_path)
-
+TEST_ON_HALF = True
 
 # #preference_model = get_peft_model(preference_model, lora_config)
-# preference_model.load_adapter(PM_path,"a")
-# preference_model.enable_adapters()
+if perspective!="untrained":
+    preference_model.load_adapter(PM_path, "a")
+    preference_model.enable_adapters()
+    print(preference_model.active_adapters())
 # print(preference_model.get_model_status())
 # Ensure the model is in evaluation mode and on the correct device
 preference_model.eval().to(device)
@@ -45,8 +49,12 @@ preference_model.eval().to(device)
 with torch.no_grad():
     for task in ["sycophancy", "danger_refusal", "impossible_task_refusal", "verbosity", "personalisation"]:
         dataset_path = f"data/datasets/{task}.jsonl"
-        save_path = f"data/datasets/{task}_{perspective}_PM_eval.jsonl"
+        save_path = f"data/datasets/{task}_{perspective}_PM_eval_trainonperso.jsonl"
         dataset = load_dataset("json", data_files=dataset_path)["train"]
+
+        if TEST_ON_HALF:
+            len_df = len(dataset)
+            dataset = dataset.select(list(range(len_df // 2, len_df)))
 
         positive_scores = []
         negative_scores = []
@@ -81,6 +89,7 @@ with torch.no_grad():
             negative_scores.append(neg_logits.item())
 
         with open(save_path, "w") as f:
+            print(f"Saving to {save_path}")
             for i, item in enumerate(dataset):
                 positive_label = item["positive_label"]
                 negative_label = item["negative_label"]
