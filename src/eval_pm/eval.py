@@ -11,14 +11,16 @@ from transformers import AutoModelForSequenceClassification, AutoTokenizer
 os.environ["HF_HOME"] = "/nas/ucb/marcuswilliams/cache/"
 
 # Paths
-perspective = "3_1"
+perspective = "3_3"
 # perspective = "untrained"
 # PM_path = f"models/fair_{perspective}"
 # model_name = "sfairXC/FsfairX-LLaMA3-RM-v0.1"
-model_name = "meta-llama/Meta-Llama-3-8B"
+# model_name = "meta-llama/Meta-Llama-3-8B"
+model_name = "Ray2333/GRM-llama3-8B-sftreg"
 tokenizer_name = "sfairXC/FsfairX-LLaMA3-RM-v0.1"
 #PM_path = f"models/llama_g3_{perspective}/checkpoint-500"
-PM_path = f"models/llama_{perspective}_trainonperso"
+model_specifier = "_trainonperso_grm_1epochs1"
+PM_path = f"models/llama_{perspective}{model_specifier}"
 
 
 # Load the dataset
@@ -26,7 +28,7 @@ num_proc = 4
 
 
 # Set device
-device = "cuda:0"
+device = "cuda:6"
 
 # Load the tokenizer and model
 tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
@@ -49,7 +51,7 @@ preference_model.eval().to(device)
 with torch.no_grad():
     for task in ["sycophancy", "danger_refusal", "impossible_task_refusal", "verbosity", "personalisation"]:
         dataset_path = f"data/datasets/{task}.jsonl"
-        save_path = f"data/datasets/{task}_{perspective}_PM_eval_trainonperso.jsonl"
+        save_path = f"data/datasets/{task}_{perspective}_PM_eval{model_specifier}.jsonl"
         dataset = load_dataset("json", data_files=dataset_path)["train"]
 
         if TEST_ON_HALF:

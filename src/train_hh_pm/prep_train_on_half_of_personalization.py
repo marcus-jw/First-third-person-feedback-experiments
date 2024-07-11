@@ -3,7 +3,14 @@ import json
 import numpy as np
 
 TRAIN_ON_HALF = True
-tasks = ["personalisation", "verbosity", "sycophancy", "danger_refusal", "impossible_task_refusal"]
+ONLY_INTENDED = True
+
+if ONLY_INTENDED:
+    tasks = ["personalisation", "verbosity"]
+    ds_prefix = "intended"
+else:
+    tasks = ["personalisation", "verbosity", "sycophancy", "danger_refusal", "impossible_task_refusal"]
+    ds_prefix = "all"
 model_postfix = "_gpt-4o" #"_gpt-3.5-turbo"
 
 for perspective in ["3_1", "3_3"]:
@@ -36,7 +43,7 @@ for perspective in ["3_1", "3_3"]:
                 data = data[: len(data) // 2]
             data_all.extend(data)
 
-    with open(f"data/datasets/all_personalization_{perspective}{model_postfix}_fortraining.jsonl", "w") as outfile:
+    with open(f"data/datasets/{ds_prefix}_personalization_{perspective}{model_postfix}_fortraining.jsonl", "w") as outfile:
         for entry in data_all:
             json.dump(entry, outfile)
             outfile.write("\n")

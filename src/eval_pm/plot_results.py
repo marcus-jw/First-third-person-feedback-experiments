@@ -2,6 +2,7 @@ import json
 
 import matplotlib.pyplot as plt
 import numpy as np
+from scipy import stats
 
 # tasks = ['danger_refusal', 'impossible_task_refusal', 'personalisation', 'sycophancy', 'verbosity']
 tasks = ["personalisation", "verbosity", "sycophancy", "danger_refusal", "impossible_task_refusal"]
@@ -16,6 +17,20 @@ PLOT_THREE_BARS = False
 perspectives = ["3_3", "3_1", "untrained"] if PLOT_THREE_BARS else ["3_3", "3_1"]   # perspect none is unfinetuned
 
 
+def Wilson_mean_stdev(series_a, series_b):
+    comparison = series_a > series_b
+    successes = np.sum(comparison)
+    n = len(series_a)
+    fraction = successes / n
+    #Compute the Wilson score interval (95% confidence level)
+    z = stats.norm.ppf(0.975)  # 0.975 for 95% CI
+    denominator = 1 + z**2/n
+    p_tilde = (fraction + z**2/(2*n)) / denominator
+    standard_error = np.sqrt((fraction*(1-fraction) + z**2/(4*n)) / n) / denominator
+    mean = p_tilde 
+    stdev = z * standard_error
+    return mean, stdev
+
 data_dict = {}
 for perspective in perspectives:
     for itask, task in enumerate(tasks):
@@ -25,12 +40,20 @@ for perspective in perspectives:
             positive_label = line_0["positive_label"] + "_score"
             negative_label = line_0["negative_label"] + "_score"
             p_count = 0
+            series_positive, series_negative = [], []
             for line in lines:
                 line = json.loads(line)
-                if line[positive_label] > line[negative_label]:
-                    p_count += 1
-            prob = p_count / len(lines)
-            data_dict[(task, perspective)] = prob * 100
+                series_positive.append(line[positive_label])
+                series_negative.append(line[negative_label])
+
+            series_positive = np.array(series_positive)
+            series_negative = np.array(series_negative)
+
+            prob = np.mean(series_positive > series_negative)
+            prob_mean, stdev= Wilson_mean_stdev(series_positive, series_negative)
+
+            data_dict[(task, perspective)] = (prob * 100, prob_mean*100, stdev*100)
+
 
 
 def flip_if_necessary(x, flipped=True):
@@ -80,36 +103,40 @@ for itask, task in enumerate(tasks):
     if itask == 1:
         ax.bar(
             r1[yaxis_number],
-            flip_if_necessary(data_dict[(task, "3_3")], flipped),
+            flip_if_necessary(data_dict[(task, "3_3")][0], flipped),
             width=bar_width,
             color="skyblue",
             label="3rd person Pov",
         )
+        ax.errorbar(r1[yaxis_number], flip_if_necessary(data_dict[(task, "3_3")][1], flipped), yerr=data_dict[(task, "3_3")][2], color="k")
         ax.bar(
             r2[yaxis_number],
-            flip_if_necessary(data_dict[(task, "3_1")], flipped),
+            flip_if_necessary(data_dict[(task, "3_1")][0], flipped),
             width=bar_width,
             color="orange",
             label="1st person PoV",
         )
+        ax.errorbar(r2[yaxis_number], flip_if_necessary(data_dict[(task, "3_1")][1], flipped), yerr=data_dict[(task, "3_1")][2], color="k")
         if PLOT_THREE_BARS:
             ax.bar(
                 r3[yaxis_number],
-                flip_if_necessary(data_dict[(task, "untrained")], flipped),
+                flip_if_necessary(data_dict[(task, "untrained")][0], flipped),
                 width=bar_width,
                 color="grey",
                 label="Untrainedd",
             )
 
     else:
-        ax.bar(r1[yaxis_number], flip_if_necessary(data_dict[(task, "3_3")], flipped), width=bar_width, color="skyblue")
-        ax.bar(r2[yaxis_number], flip_if_necessary(data_dict[(task, "3_1")], flipped), width=bar_width, color="orange")
+        ax.bar(r1[yaxis_number], flip_if_necessary(data_dict[(task, "3_3")][0], flipped), width=bar_width, color="skyblue")
+        ax.errorbar(r1[yaxis_number], flip_if_necessary(data_dict[(task, "3_3")][1], flipped), yerr=data_dict[(task, "3_3")][2], color="k")
+        ax.bar(r2[yaxis_number], flip_if_necessary(data_dict[(task, "3_1")][0], flipped), width=bar_width, color="orange")
+        ax.errorbar(r2[yaxis_number], flip_if_necessary(data_dict[(task, "3_1")][1], flipped), yerr=data_dict[(task, "3_1")][2], color="k")
         if PLOT_THREE_BARS:
             ax.bar(
-                r3[yaxis_number], flip_if_necessary(data_dict[(task, "untrained")], flipped), width=bar_width, color="grey"
+                r3[yaxis_number], flip_if_necessary(data_dict[(task, "untrained")][0], flipped), width=bar_width, color="grey"
             )
 
-    ax.set_title("PoV impact on personalization \nfor PM trained on HH with GPT-3.5 labels")
+    ax.set_title("PoV impact on personalization \nfor PM trained on HH with GPT-4o labels")
     ax.set_ylabel(f"Percentage of answers")
     plt.ylim(0, 100)
     plt.xlim(-1 * bar_width, len(categories) - 0.5 * bar_width)
