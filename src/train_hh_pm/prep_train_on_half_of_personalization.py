@@ -3,7 +3,7 @@ import json
 import numpy as np
 
 TRAIN_ON_HALF = True
-ONLY_INTENDED = True
+ONLY_INTENDED = False
 
 if ONLY_INTENDED:
     tasks = ["personalisation", "verbosity"]

@@ -15,7 +15,8 @@ categories = [
 ]
 PLOT_THREE_BARS = False
 perspectives = ["3_3", "3_1", "untrained"] if PLOT_THREE_BARS else ["3_3", "3_1"]   # perspect none is unfinetuned
-model_specifier = "_trainonperso_grm_1epochs1"
+pm_iterations = 3
+model_specifier = "_trainonperso_grm_10epochs"
 
 def Wilson_mean_stdev(series_a, series_b):
     comparison = series_a > series_b
@@ -34,25 +35,29 @@ def Wilson_mean_stdev(series_a, series_b):
 data_dict = {}
 for perspective in perspectives:
     for itask, task in enumerate(tasks):
-        with open(f"data/datasets/{task}_{perspective}_PM_eval{model_specifier}.jsonl", "r", encoding="utf-8") as f_in:
-            lines = f_in.readlines()
-            line_0 = json.loads(lines[0])
-            positive_label = line_0["positive_label"] + "_score"
-            negative_label = line_0["negative_label"] + "_score"
-            p_count = 0
-            series_positive, series_negative = [], []
-            for line in lines:
-                line = json.loads(line)
-                series_positive.append(line[positive_label])
-                series_negative.append(line[negative_label])
+        probs = []
+        for pm_iteration in range(1, 1+pm_iterations):
+            with open(f"data/datasets/{task}_{perspective}_PM_eval{model_specifier}{pm_iteration}.jsonl", "r", encoding="utf-8") as f_in:
+                lines = f_in.readlines()
+                line_0 = json.loads(lines[0])
+                positive_label = line_0["positive_label"] + "_score"
+                negative_label = line_0["negative_label"] + "_score"
+                p_count = 0
+                series_positive, series_negative = [], []
+                for line in lines:
+                    line = json.loads(line)
+                    series_positive.append(line[positive_label])
+                    series_negative.append(line[negative_label])
 
-            series_positive = np.array(series_positive)
-            series_negative = np.array(series_negative)
+                series_positive = np.array(series_positive)
+                series_negative = np.array(series_negative)
 
-            prob = np.mean(series_positive > series_negative)
-            prob_mean, stdev= Wilson_mean_stdev(series_positive, series_negative)
-
-            data_dict[(task, perspective)] = (prob * 100, prob_mean*100, stdev*100)
+                prob = np.mean(series_positive > series_negative)
+                #prob_mean, stdev= Wilson_mean_stdev(series_positive, series_negative)
+                probs.append(prob)
+        #print(f"task {task} probs {probs}")
+        probs = np.array(probs)
+        data_dict[(task, perspective)] = (probs.mean() * 100, probs.mean()*100, probs.std()*100)
 
 
 
@@ -136,7 +141,7 @@ for itask, task in enumerate(tasks):
                 r3[yaxis_number], flip_if_necessary(data_dict[(task, "untrained")][0], flipped), width=bar_width, color="grey"
             )
 
-    ax.set_title("PoV impact on personalization \nfor PM trained on HH with GPT-4o labels")
+    ax.set_title(f"PoV impact on personalization \nfor PM trained on HH with GPT-4o labels\n{model_specifier}")
     ax.set_ylabel(f"Percentage of answers")
     plt.ylim(0, 100)
     plt.xlim(-1 * bar_width, len(categories) - 0.5 * bar_width)
