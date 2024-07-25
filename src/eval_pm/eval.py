@@ -1,6 +1,7 @@
 import json
 import math
 import os
+import sys
 
 import torch
 from datasets import Dataset, load_dataset
@@ -8,19 +9,28 @@ from peft import LoraConfig, get_peft_model
 from tqdm import tqdm
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
+# Run with
+""" 
+for num_perspective in {1..3..2}; do for num_run in {1..3}; do /home/constantinweisser/anaconda3/envs/mats/bin/python /nas/ucb/constantinweisser/First-third-person-feedback-experiments/src/eval_pm/eval.py $num_perspectiv
+e $num_run; done; done
+"""
+
 os.environ["HF_HOME"] = "/nas/ucb/marcuswilliams/cache/"
 
 # Paths
-perspective = "3_3"
+perspective = f"3_{sys.argv[1]}"
 # perspective = "untrained"
 # PM_path = f"models/fair_{perspective}"
 # model_name = "sfairXC/FsfairX-LLaMA3-RM-v0.1"
 # model_name = "meta-llama/Meta-Llama-3-8B"
 model_name = "Ray2333/GRM-llama3-8B-sftreg"
 tokenizer_name = "sfairXC/FsfairX-LLaMA3-RM-v0.1"
-#PM_path = f"models/llama_g3_{perspective}/checkpoint-500"
-model_specifier = "_trainonperso_grm_1epochs1"
+# PM_path = f"models/llama_g3_{perspective}/checkpoint-500"
+model_specifier = f"_trainonperso_grm_big_1epochs_lr5e-4{sys.argv[2]}"
 PM_path = f"models/llama_{perspective}{model_specifier}"
+
+print("perspective ", perspective)
+print("model_specifier ", model_specifier)
 
 
 # Load the dataset
@@ -39,7 +49,7 @@ preference_model = AutoModelForSequenceClassification.from_pretrained(model_name
 TEST_ON_HALF = True
 
 # #preference_model = get_peft_model(preference_model, lora_config)
-if perspective!="untrained":
+if perspective != "untrained":
     preference_model.load_adapter(PM_path, "a")
     preference_model.enable_adapters()
     print(preference_model.active_adapters())
