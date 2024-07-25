@@ -119,23 +119,23 @@ def eval_llm(model = "gpt-4o", task = "sycophancy", SCRATCHPAD=False):
         data = []
         for line in f_in:
             data.append(json.loads(line))
-        first_firstshoes_messages = parallel_process_data(data, first_topic_prompts[task],first_firstshoes_extra_prompt, answer_style_prompt, model, sep_roles=True)
+        # first_firstshoes_messages = parallel_process_data(data, first_topic_prompts[task],first_firstshoes_extra_prompt, answer_style_prompt, model, sep_roles=True)
         third_thirdshoes_messages = parallel_process_data(data, third_thirdshoes_system_prompt, third_thirdshoes_extra_prompt, answer_style_prompt, model, sep_roles=False)
         third_firstshoes_messages = parallel_process_data(data, third_firstshoes_system_prompt, third_firstshoes_extra_prompt, answer_style_prompt, model, sep_roles=False)
-        first_thirdshoes_messages = parallel_process_data(data, first_topic_prompts[task],first_thirdshoes_extra_prompt, answer_style_prompt, model, sep_roles=True)
+        # first_thirdshoes_messages = parallel_process_data(data, first_topic_prompts[task],first_thirdshoes_extra_prompt, answer_style_prompt, model, sep_roles=True)
 
         for i in range(len(data)):
             data[i]["positive_label_prob"] = {
-                "first_firstshoes": np.exp(first_firstshoes_messages[i]["positive_label_logprob"]),
+                # "first_firstshoes": np.exp(first_firstshoes_messages[i]["positive_label_logprob"]),
                 "third_thirdshoes": np.exp(third_thirdshoes_messages[i]["positive_label_logprob"]),
                 "third_firstshoes": np.exp(third_firstshoes_messages[i]["positive_label_logprob"]),
-                "first_thirdshoes": np.exp(first_thirdshoes_messages[i]["positive_label_logprob"]),
+                # "first_thirdshoes": np.exp(first_thirdshoes_messages[i]["positive_label_logprob"]),
             }
             data[i]["negative_label_prob"] = {
-                "first_firstshoes": np.exp(first_firstshoes_messages[i]["negative_label_logprob"]),
+                # "first_firstshoes": np.exp(first_firstshoes_messages[i]["negative_label_logprob"]),
                 "third_thirdshoes": np.exp(third_thirdshoes_messages[i]["negative_label_logprob"]),
                 "third_firstshoes": np.exp(third_firstshoes_messages[i]["negative_label_logprob"]),
-                "first_thirdshoes": np.exp(first_thirdshoes_messages[i]["negative_label_logprob"]),
+                # "first_thirdshoes": np.exp(first_thirdshoes_messages[i]["negative_label_logprob"]),
             }
             data[i].pop('answerA') #delete key
             data[i].pop('answerB')

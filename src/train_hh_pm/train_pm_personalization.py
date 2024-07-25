@@ -43,9 +43,14 @@ if __name__ == "__main__":
         "json", data_files=f"data/datasets/{ds_prefix}_personalization_{config.perspective}{model_postfix}_fortraining.jsonl"
     )
     train_dataset= train_dataset.shuffle()["train"]
+
+    test_dataset = load_dataset(
+        "json", data_files=f"data/datasets/{ds_prefix}_personalization_{config.perspective}{model_postfix}_fortest.jsonl"
+    )
+    test_dataset= test_dataset.shuffle()["train"]
     
     # train_dataset = load_dataset("json", data_files=f"data/hh_labels/hh_train_{config.perspective}.jsonl")["train"]
-    test_dataset = train_dataset.select(range(5))
+    #test_dataset = train_dataset.select(range(5))
     # test_dataset = load_dataset("json", data_files=f"data/hh_labels/hh_test_{config.perspective}.jsonl")["train"]
     # train_dataset = load_dataset("json", data_files=f"data/hh_labels/anthropic_train.jsonl")["train"]
     # test_dataset = load_dataset("json", data_files=f"data/hh_labels/anthropic_test.jsonl")["train"]
@@ -165,7 +170,7 @@ if __name__ == "__main__":
         batched=True,
         num_proc=config.num_proc,
     )
-    print("begin training")
+    print(f"begin training for model in {reward_config.output_dir}")
     model.train()
 
     # reward_config.bf16 = True
@@ -178,6 +183,8 @@ if __name__ == "__main__":
         peft_config=peft_config,
     )
     trainer.train()
+    print(f"Saving model to {reward_config.output_dir}")
     trainer.save_model()
     model = accelerator.unwrap_model(model)
     model.save_pretrained(reward_config.output_dir + "/unwrap")
+    print(f"Saved model to {reward_config.output_dir}")

@@ -1,8 +1,7 @@
 import json
 
 import numpy as np
-
-TRAIN_ON_HALF = True
+strategy = "_fortest" # "_fortraining" # "_fortest" # ""
 ONLY_INTENDED = False
 
 if ONLY_INTENDED:
@@ -39,11 +38,13 @@ for perspective in ["3_1", "3_3"]:
                     ]
                 }
                 data.append(d)
-            if TRAIN_ON_HALF:
+            if strategy=="_fortraining":
                 data = data[: len(data) // 2]
+            elif strategy=="_fortest":
+                data = data[len(data) // 2 : ((len(data) // 2) + (len(data) // 50))]
             data_all.extend(data)
 
-    with open(f"data/datasets/{ds_prefix}_personalization_{perspective}{model_postfix}_fortraining.jsonl", "w") as outfile:
+    with open(f"data/datasets/{ds_prefix}_personalization_{perspective}{model_postfix}{strategy}.jsonl", "w") as outfile:
         for entry in data_all:
             json.dump(entry, outfile)
             outfile.write("\n")
