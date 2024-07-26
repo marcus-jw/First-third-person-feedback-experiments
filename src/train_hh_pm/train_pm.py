@@ -1,6 +1,8 @@
 import os
 import re
 
+import numpy as np
+import torch
 import torch.distributed as dist
 from accelerate import Accelerator
 from datasets import load_dataset
@@ -9,8 +11,16 @@ from torch.distributed.fsdp import FullyShardedDataParallel as FSDP
 from transformers import AutoModelForSequenceClassification, AutoTokenizer, HfArgumentParser
 from trl import RewardConfig, RewardTrainer
 
+# Debugging CUDA devices
+if torch.cuda.is_available():
+    print(f"Available CUDA devices: {torch.cuda.device_count()}")
+    for i in range(torch.cuda.device_count()):
+        print(f"Device {i}: {torch.cuda.get_device_name(i)}")
+else:
+    print("CUDA is not available.")
+
 accelerator = Accelerator()
-os.environ["HF_HOME"] = "/nas/ucb/marcuswilliams/cache/"
+os.environ["HF_HOME"] = "/nas/ucb/constantinweisser/cache/"
 
 
 def is_main_process():
@@ -36,8 +46,10 @@ if __name__ == "__main__":
 
     # print(reward_config)f
     # reward_config.gradient_checkpointing_kwargs={"use_reentrant":False}
-    train_dataset = load_dataset("json", data_files=f"data/hh_labels/hh_train_{config.perspective}.jsonl")["train"]
-    test_dataset = load_dataset("json", data_files=f"data/hh_labels/hh_test_{config.perspective}.jsonl")["train"]
+    train_dataset = load_dataset("json", data_files=f"data/hh_labels/hh_train_{config.perspective}.jsonl")
+    train_dataset = train_dataset.shuffle()["train"]
+    test_dataset = load_dataset("json", data_files=f"data/hh_labels/hh_test_{config.perspective}.jsonl")
+    test_dataset = test_dataset.shuffle()["train"]
     # train_dataset = load_dataset("json", data_files=f"data/hh_labels/anthropic_train.jsonl")["train"]
     # test_dataset = load_dataset("json", data_files=f"data/hh_labels/anthropic_test.jsonl")["train"]
 
@@ -140,7 +152,7 @@ if __name__ == "__main__":
         batched=True,
         num_proc=config.num_proc,
     )
-    print("begin training")
+    print(f"begin training for model in {reward_config.output_dir}")
     model.train()
 
     # reward_config.bf16 = True
@@ -153,6 +165,8 @@ if __name__ == "__main__":
         peft_config=peft_config,
     )
     trainer.train()
+    print(f"Saving model to {reward_config.output_dir}")
     trainer.save_model()
     model = accelerator.unwrap_model(model)
     model.save_pretrained(reward_config.output_dir + "/unwrap")
+    print(f"Saved model to {reward_config.output_dir}")
