@@ -1,10 +1,10 @@
 export HF_HOME=/nas/ucb/constantinweisser/cache/
 
-for num_perspective in {1..3..2} 
-do  perspective="3_"$num_perspective;
 for num_run in {1..3}
-do accelerate launch --config_file accelerate_config.yaml src/train_hh_pm/train_pm_personalization.py  \
-    --output_dir="models/llama_${perspective}_trainonperso_grm_big_1epochs_lr5e-4${num_run}" \
+do for num_perspective in {1..3..2} 
+do  perspective="3_"$num_perspective;
+accelerate launch --config_file accelerate_config.yaml src/train_hh_pm/train_pm.py  \
+    --output_dir="models/llama_${perspective}_hh_1epochs_lr5e-4_${num_run}" \
     --perspective=${perspective} \
     --model_name=Ray2333/GRM-llama3-8B-sftreg \
     --tokenizer_name=sfairXC/FsfairX-LLaMA3-RM-v0.1   \
@@ -19,12 +19,13 @@ do accelerate launch --config_file accelerate_config.yaml src/train_hh_pm/train_
     --optim="adamw_torch" \
     --logging_steps=1 \
     --eval_strategy="steps" \
-    --eval_steps=0.1 \
+    --eval_steps=0.25 \
     --max_length=2048 \
     --LoRA=True \
     --LoRA_r=8 \
     --LoRA_alpha=32 \
     --LoRA_dropout=0.1 \
+    --fp16=True \
     --lr_scheduler_type="cosine";
 done
 done  

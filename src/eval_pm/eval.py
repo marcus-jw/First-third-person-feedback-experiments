@@ -11,7 +11,7 @@ from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
 # Run with
 """ 
-for num_perspective in {1..3..2}; do for num_run in {1..3}; do /home/constantinweisser/anaconda3/envs/mats/bin/python /nas/ucb/constantinweisser/First-third-person-feedback-experiments/src/eval_pm/eval.py $num_perspectiv
+for num_perspective in {1..3..2}; do for num_run in {1..3}; do /nas/ucb/constantinweisser/anaconda3/envs/llmperspective/bin/python /nas/ucb/constantinweisser/First-third-person-feedback-experiments/src/eval_pm/eval.py $num_perspectiv
 e $num_run; done; done
 """
 
@@ -26,7 +26,8 @@ perspective = f"3_{sys.argv[1]}"
 model_name = "Ray2333/GRM-llama3-8B-sftreg"
 tokenizer_name = "sfairXC/FsfairX-LLaMA3-RM-v0.1"
 # PM_path = f"models/llama_g3_{perspective}/checkpoint-500"
-model_specifier = f"_trainonperso_grm_big_1epochs_lr5e-4{sys.argv[2]}"
+# model_specifier = f"_trainonperso_grm_big_1epochs_lr5e-4{sys.argv[2]}"
+model_specifier = f"_hh_1epochs_lr5e-4_{sys.argv[2]}"
 PM_path = f"models/llama_{perspective}{model_specifier}"
 
 print("perspective ", perspective)
@@ -38,7 +39,7 @@ num_proc = 4
 
 
 # Set device
-device = "cuda:6"
+device = "cuda:0"
 
 # Load the tokenizer and model
 tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
