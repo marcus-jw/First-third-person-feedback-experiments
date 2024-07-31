@@ -12,9 +12,10 @@ from trl import RewardConfig, RewardTrainer
 
 accelerator = Accelerator()
 os.environ["HF_HOME"] = "/nas/ucb/constantinweisser/cache/"
-model_postfix = "_gpt-4o" #"_gpt-3.5-turbo"
-ds_prefix = "all" # "intended" #"all"
+model_postfix = "_gpt-4o"  # "_gpt-3.5-turbo"
+ds_prefix = "intended"  # "intended" #"all"
 DEBUGGING_DATA_SET_SIZE = False
+
 
 def is_main_process():
     return dist.get_rank() == 0
@@ -40,25 +41,26 @@ if __name__ == "__main__":
     # print(reward_config)f
     # reward_config.gradient_checkpointing_kwargs={"use_reentrant":False}
     train_dataset = load_dataset(
-        "json", data_files=f"data/datasets/{ds_prefix}_personalization_{config.perspective}{model_postfix}_fortraining.jsonl"
+        "json",
+        data_files=f"data/datasets/{ds_prefix}_personalization_{config.perspective}{model_postfix}_fortraining.jsonl",
     )
-    train_dataset= train_dataset.shuffle()["train"]
+    train_dataset = train_dataset.shuffle()["train"]
 
     test_dataset = load_dataset(
-        "json", data_files=f"data/datasets/{ds_prefix}_personalization_{config.perspective}{model_postfix}_fortest.jsonl"
+        "json",
+        data_files=f"data/datasets/{ds_prefix}_personalization_{config.perspective}{model_postfix}_fortest.jsonl",
     )
-    test_dataset= test_dataset.shuffle()["train"]
-    
+    test_dataset = test_dataset.shuffle()["train"]
+
     # train_dataset = load_dataset("json", data_files=f"data/hh_labels/hh_train_{config.perspective}.jsonl")["train"]
-    #test_dataset = train_dataset.select(range(5))
+    # test_dataset = train_dataset.select(range(5))
     # test_dataset = load_dataset("json", data_files=f"data/hh_labels/hh_test_{config.perspective}.jsonl")["train"]
     # train_dataset = load_dataset("json", data_files=f"data/hh_labels/anthropic_train.jsonl")["train"]
     # test_dataset = load_dataset("json", data_files=f"data/hh_labels/anthropic_test.jsonl")["train"]
-    
-    if DEBUGGING_DATA_SET_SIZE: 
+
+    if DEBUGGING_DATA_SET_SIZE:
         train_dataset = train_dataset.select(range(2))
         test_dataset = train_dataset.select(range(2))
-
 
     # train_dataset = train_dataset.select(range(5))
     # test_dataset = test_dataset.select(range(1024))
