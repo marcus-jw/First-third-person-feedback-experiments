@@ -17,7 +17,9 @@ PLOT_THREE_BARS = False
 perspectives = ["3_3", "3_1", "untrained"] if PLOT_THREE_BARS else ["3_3", "3_1"]  # perspect none is unfinetuned
 pm_iterations = 1  # 3
 # model_specifier = "_trainonperso_grm_big_10epochs"
-model_specifier = "_hh_1epochs_lr5e-4_"  # "_trainonperso_grm_big_1epochs_lr5e-4"
+model_specifier = (
+    "_trainonperso-intended_grm_big_1epochs_lr5e-4_"  # "_hh_1epochs_lr5e-4_"  # "_trainonperso_grm_big_1epochs_lr5e-4"
+)
 
 
 def Wilson_mean_stdev(series_a, series_b):
