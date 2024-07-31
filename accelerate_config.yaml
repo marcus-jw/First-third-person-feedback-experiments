@@ -1,6 +1,6 @@
 compute_environment: LOCAL_MACHINE
 debug: false
-distributed_type: FSDP #MULTI_GPU # "NO"
+distributed_type: MULTI_GPU #FSDP #MULTI_GPU # "NO"
 downcast_bf16: 'no'
 enable_cpu_affinity: false
 gpu_ids: '2,3,5,6' # "1" 

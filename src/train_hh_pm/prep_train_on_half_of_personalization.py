@@ -1,7 +1,8 @@
 import json
 
 import numpy as np
-strategy = "_fortest" # "_fortraining" # "_fortest" # ""
+
+strategy = "_fortest"  # "_fortraining" # "_fortest" # ""
 ONLY_INTENDED = False
 
 if ONLY_INTENDED:
@@ -10,7 +11,7 @@ if ONLY_INTENDED:
 else:
     tasks = ["personalisation", "verbosity", "sycophancy", "danger_refusal", "impossible_task_refusal"]
     ds_prefix = "all"
-model_postfix = "_gpt-4o" #"_gpt-3.5-turbo"
+model_postfix = "_gpt-4o"  # "_gpt-3.5-turbo"
 
 for perspective in ["3_1", "3_3"]:
     perspective_name = "third_firstshoes" if perspective == "3_1" else "third_thirdshoes"
@@ -38,13 +39,15 @@ for perspective in ["3_1", "3_3"]:
                     ]
                 }
                 data.append(d)
-            if strategy=="_fortraining":
+            if strategy == "_fortraining":
                 data = data[: len(data) // 2]
-            elif strategy=="_fortest":
+            elif strategy == "_fortest":
                 data = data[len(data) // 2 : ((len(data) // 2) + (len(data) // 50))]
             data_all.extend(data)
 
-    with open(f"data/datasets/{ds_prefix}_personalization_{perspective}{model_postfix}{strategy}.jsonl", "w") as outfile:
+    with open(
+        f"data/datasets/{ds_prefix}_personalization_{perspective}{model_postfix}{strategy}.jsonl", "w"
+    ) as outfile:
         for entry in data_all:
             json.dump(entry, outfile)
             outfile.write("\n")
